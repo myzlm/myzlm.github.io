@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+ <title>墨韵·书签雅集</title>
+  <link rel="icon" type="image/png" href="/my/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 背景装饰 -->
+  <div class="watercolor-bg"></div>
+  <div class="stars-container" id="starsContainer"></div>
+  <div class="clouds" id="cloudsContainer"></div>
+  <canvas id="petalCanvas"></canvas>
+  <canvas id="poemCanvas"></canvas>
+  <canvas id="rippleCanvas"></canvas>
+  <canvas id="fireflyCanvas"></canvas>
+
+  <!-- Toast与回到顶部 -->
+  <div class="toast-container" id="toastContainer"></div>
+  <button class="back-to-top" id="backToTop" title="回到顶部">⬆</button>
+
+  <div class="main-container">
+    <div class="header">
+      <div class="plaque-wrapper">
+        <div class="plaque" id="plaqueEl">
+          <span class="shine"></span>
+          <h1 class="plaque-title">墨韵·书签雅集</h1>
+        </div>
+      </div>
+      <div class="user-area" id="userArea">
+        <span class="greeting" id="greetingText">未登录·游客</span>
+        <button class="btn theme-btn" id="themeToggle" title="切换暗色模式">🌓</button>
+        <button class="btn" id="loginBtn">登 录</button>
+        <button class="btn" id="changeMyPassBtn" style="display:none;">修改密码</button>
+        <button class="btn" id="applySiteBtn" style="display:none;">📜 申请网站</button>
+        <button class="btn admin-btn" id="adminPanelBtn" style="display:none;">管理</button>
+        <button class="btn" id="logoutBtn" style="display:none;">登出</button>
+      </div>
+      <div class="search-wrapper">
+        <div class="search-container">
+          <input type="text" class="search-input" id="searchInput" placeholder="搜索书签名称或描述..." autocomplete="off">
+          <button class="search-clear" id="searchClear" aria-label="清除搜索">&times;</button>
+        </div>
+      </div>
+      <div class="filter-tags" id="filterTags">
+        <span class="filter-tag active" data-category="all">全部</span>
+      </div>
+      <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <div class="sites-grid" id="sitesGrid"></div>
+
+    <!-- 管理面板 -->
+    <div class="admin-panel" id="adminPanel" style="display:none;">
+      <h3 style="font-family:'Ma Shan Zheng'; font-size:1.8rem; color:var(--text-primary);">🔰 管理面板</h3>
+      <div class="tab-buttons">
+        <button class="btn tab-btn active" data-tab="siteManage">网站管理</button>
+        <button class="btn tab-btn" data-tab="userManage">用户管理</button>
+        <button class="btn tab-btn" data-tab="applyManage">待审核网站</button>
+        <button class="btn tab-btn" data-tab="deleteRequestManage">删除申请</button>
+      </div>
+      <div class="tab-content active" id="siteManage">
+        <form onsubmit="return false" style="margin-bottom:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <input type="text" id="newSiteName" placeholder="网站名称" class="input-group input">
+          <input type="text" id="newSiteUrl" placeholder="网址" class="input-group input">
+          <input type="text" id="newSiteDesc" placeholder="描述" class="input-group input">
+          <input type="text" id="newSiteSeal" placeholder="印章(1字)" maxlength="2" class="input-group input">
+          <input type="text" id="newSiteCat" placeholder="分类" class="input-group input">
+          <button class="btn" id="addSiteBtn">添加网站</button>
+        </form>
+        <div id="siteListManage"></div>
+      </div>
+      <div class="tab-content" id="userManage">
+        <form onsubmit="return false" style="margin-bottom:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <input type="text" id="newUsername" placeholder="新用户名" class="input-group input" autocomplete="off">
+          <input type="password" id="newUserPass" placeholder="密码" class="input-group input" autocomplete="new-password">
+          <select id="newUserRole" class="input-group input" style="flex:1 1 120px; min-width:100px;">
+            <option value="member">成员</option>
+            <option value="admin">管理员</option>
+          </select>
+          <button class="btn" id="addUserBtn">添加用户</button>
+        </form>
+        <div id="userListManage"></div>
+        <p class="warning">※ 管理员修改密码需通过专用安全接口，需要后端支持。</p>
+      </div>
+      <div class="tab-content" id="applyManage">
+        <div id="applyListManage"></div>
+      </div>
+      <div class="tab-content" id="deleteRequestManage">
+        <div id="deleteRequestList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal">
+      <button class="close-btn" id="closeLoginModal">&times;</button>
+      <h2>登录书斋</h2>
+      <form onsubmit="return false">
+        <div class="input-group"><label>账号</label><input type="text" id="loginUsername" placeholder="请输入账号" autocomplete="username"></div>
+        <div class="input-group"><label>密码</label><input type="password" id="loginPassword" placeholder="请输入密码" autocomplete="current-password"></div>
+        <div class="modal-actions"><button class="btn" id="submitLogin">登 录</button></div>
+      </form>
+      <p style="text-align:center;margin-top:1rem;font-size:0.85rem;color:var(--text-muted);">游客可浏览，登录后更多功能</p>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="applyModal">
+    <div class="modal">
+      <button class="close-btn" id="closeApplyModal">&times;</button>
+      <h2>申请收录网站</h2>
+      <form onsubmit="return false">
+        <div class="input-group"><label>网站名称</label><input type="text" id="applyName" placeholder="必填"></div>
+        <div class="input-group"><label>网址</label><input type="text" id="applyUrl" placeholder="必填"></div>
+        <div class="input-group"><label>描述</label><input type="text" id="applyDesc"></div>
+        <div class="input-group"><label>印章(一字)</label><input type="text" id="applySeal" maxlength="2"></div>
+        <div class="input-group"><label>分类</label><input type="text" id="applyCat"></div>
+        <div class="modal-actions"><button class="btn" id="submitApply">提交申请</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="changePassModal">
+    <div class="modal">
+      <button class="close-btn" id="closeChangePassModal">&times;</button>
+      <h2>修改用户密码</h2>
+      <form onsubmit="return false">
+        <div class="input-group"><label>用户名</label><input type="text" id="changePassUser" readonly></div>
+        <div class="input-group"><label>新密码</label><input type="password" id="changePassNew" autocomplete="new-password"></div>
+        <div class="modal-actions"><button class="btn" id="submitChangePass">确认修改</button></div>
+      </form>
+      <p class="warning" style="margin-top:0.5rem;">※ 管理员修改密码将通过安全接口完成。</p>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="selfChangePassModal">
+    <div class="modal">
+      <button class="close-btn" id="closeSelfChangePassModal">&times;</button>
+      <h2>修改我的密码</h2>
+      <form onsubmit="return false">
+        <div class="input-group"><label>旧密码</label><input type="password" id="selfOldPass" autocomplete="current-password"></div>
+        <div class="input-group"><label>新密码</label><input type="password" id="selfNewPass" autocomplete="new-password"></div>
+        <div class="modal-actions"><button class="btn" id="submitSelfChangePass">确认修改</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
